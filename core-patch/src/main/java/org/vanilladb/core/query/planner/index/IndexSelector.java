@@ -95,7 +95,7 @@ public class IndexSelector {
 				ConstantRange searchRange = pred.constantRange(fieldName);
 				if (searchRange != null && (
 						(ii.indexType() == IndexType.HASH && searchRange.isConstant())
-						|| ii.indexType() == IndexType.BTREE))
+						|| ii.indexType() == IndexType.BTREE|| ii.indexType() == IndexType.IVFFlat))
 					ranges.put(fieldName, searchRange);
 			}
 			
@@ -177,7 +177,7 @@ public class IndexSelector {
 				ConstantRange searchRange = pred.constantRange(fieldName);
 				if (searchRange != null && (
 						(ii.indexType() == IndexType.HASH && searchRange.isConstant())
-						|| ii.indexType() == IndexType.BTREE))
+						|| ii.indexType() == IndexType.BTREE|| ii.indexType() == IndexType.IVFFlat))
 					ranges.put(fieldName, searchRange);
 			}
 			

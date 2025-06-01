@@ -16,14 +16,20 @@
 package org.vanilladb.core.storage.index.IVFFlat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.vanilladb.core.query.algebra.TableScan;
+import org.vanilladb.core.server.VanillaDb;
+import org.vanilladb.core.sql.Constant;
 import org.vanilladb.core.sql.VectorConstant;
 import org.vanilladb.core.sql.distfn.DistanceFn;
 import org.vanilladb.core.storage.index.Index;
 import org.vanilladb.core.storage.index.SearchKey;
 import org.vanilladb.core.storage.index.SearchKeyType;
 import org.vanilladb.core.storage.index.SearchRange;
+import org.vanilladb.core.storage.metadata.TableInfo;
 import org.vanilladb.core.storage.metadata.index.IndexInfo;
 import org.vanilladb.core.storage.record.RecordId;
 import org.vanilladb.core.storage.tx.Transaction;
@@ -39,7 +45,7 @@ public class IVFFlatIndex extends Index {
 	public int current_cluster_num = 0;
 	private VectorConstant target_vector;
 
-	public List<RecordId> top_k_vector_rids;
+	public List<RecordId> top_k_vector_rids = new ArrayList<>();
 	public int current_return_idx = 0;
 
 
@@ -62,6 +68,10 @@ public class IVFFlatIndex extends Index {
 		for (int i = 0; i < CLUSTER_NUM; i++) {
 			clusters.add(new IVFCluster());
 		}
+
+
+
+		BuildCluster(ii, keyType, tx);
 	}
 
 
@@ -283,5 +293,43 @@ public class IVFFlatIndex extends Index {
         return Math.sqrt(sum);
     }
 
+
+	public static long searchCost(SearchKeyType keyType, long totRecs, long matchRecs) {
+		// 
+		return 0;
+	}
+
+	public void BuildCluster(IndexInfo ii, SearchKeyType keyType, Transaction tx) {
+		//TODO
+		String tblName = ii.tableName();
+		TableInfo ti = VanillaDb.catalogMgr().getTableInfo("table_name", tx);
+		TableScan ts = new TableScan(ti, tx);
+
+		try {
+			ts.beforeFirst();
+			while (ts.next()) {
+				// Extract the embedding vector (assuming the first field is the embedding)
+				VectorConstant vec = (VectorConstant) ts.getVal(ii.fieldNames().get(0));
+				
+				List<String> fields = new ArrayList<>();
+            	fields.add(ii.fieldNames().get(0));
+
+				Map<String, Constant> values = new HashMap<>();
+            	values.put(ii.fieldNames().get(0), vec);
+
+				// Build a search key (using varargs constructor)
+				SearchKey key = new SearchKey(fields, values);
 	
+				// Get the record id
+				RecordId rid = ts.getRecordId();
+	
+				// Insert into the IVF index
+				this.insert(key, rid, false);
+			}
+		} finally {
+			ts.close();
+		}
+
+		return;
+	}
 }

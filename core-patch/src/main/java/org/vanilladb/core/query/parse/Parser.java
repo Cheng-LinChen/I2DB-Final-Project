@@ -72,7 +72,7 @@ public class Parser {
 
 	static {
 		int defaultIdxType = CoreProperties.getLoader().getPropertyAsInteger(
-				Parser.class.getName() + ".DEFAULT_INDEX_TYPE", 1);
+				Parser.class.getName() + ".DEFAULT_INDEX_TYPE", 3);
 		DEFAULT_INDEX_TYPE = IndexType.fromInteger(defaultIdxType);
 	}
 
